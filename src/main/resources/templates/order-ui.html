@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통합 주문 UI</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2, h3 {
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        h3 {
+            margin-top: 30px;
+            color: #1e1e1e;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-message {
+            background-color: #eef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            font-size: 16px;
+            border-left: 4px solid #4caf50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f8f8;
+            color: #555;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .add-item-btn {
+            background-color: #1e88e5;
+        }
+
+        .add-item-btn:hover {
+            background-color: #1976d2;
+        }
+
+        .remove-item-btn {
+            background-color: #f44336;
+        }
+
+        .remove-item-btn:hover {
+            background-color: #e53935;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 40px;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .order-item input {
+            width: 60%;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .order-item {
+                flex-direction: column;
+            }
+
+            .order-item input {
+                width: 100%;
+            }
+
+            table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>📦 주문 통합 테스트 화면</h2>
+
+    <!-- 결과 메시지 -->
+    <div th:if="${result}" class="result-message">
+        <strong th:text="${result}">결과 메시지</strong>
+    </div>
+
+    <!-- 주문 조회 후 결과 표시 -->
+    <div>
+        <h3>주문 조회 결과</h3>
+
+        <div>
+            <h3>주문 ID: <span th:text="${orderId}"></span></h3>
+            <h3>총 금액: <span th:text="${totalAmount}"></span></h3>
+        </div>
+
+        <h3>주문 항목</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>상품 ID</th>
+                <th>상품 이름</th>
+                <th>수량</th>
+                <th>총 가격</th>
+                <th>취소 여부</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- 주문 아이템 리스트를 출력 -->
+            <tr th:each="item : ${items}">
+                <td th:text="${item.productId}"></td>
+                <td th:text="${item.productName}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td th:text="${item.totalPrice}"></td>
+                <td th:text="${item.cancelled} ? '취소 완료' : '주문 완료'"
+                    th:style="${item.cancelled} ? 'color: red;' : 'color: green;'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <hr/>
+
+    <!-- ✅ 상품 현황 테이블 -->
+    <h3>🛒 상품 재고 현황</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>상품 ID</th>
+            <th>상품명</th>
+            <th>판매가</th>
+            <th>할인</th>
+            <th>재고</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${products}">
+            <td th:text="${p.id}"></td>
+            <td th:text="${p.name}"></td>
+            <td th:text="${p.price}"></td>
+            <td th:text="${p.discount}"></td>
+            <td th:text="${p.stock}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <hr/>
+
+    <!-- 주문 생성 -->
+    <h3>📌 주문 생성</h3>
+    <form method="post" action="/ui/create">
+        <table id="orderTable">
+            <thead>
+            <tr>
+                <th>상품 ID</th>
+                <th>수량</th>
+                <th>작업</th>
+            </tr>
+            </thead>
+            <tbody id="orderItems">
+            <tr>
+                <td><input type="text" name="items[0].productId" required></td>
+                <td><input type="number" name="items[0].quantity" min="1" required></td>
+                <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">–</button></td>
+            </tr>
+            </tbody>
+        </table>
+        <button type="button" class="add-item-btn" onclick="addItem()">+ 항목 추가</button>
+        <br><br>
+        <button type="submit">주문하기</button>
+    </form>
+
+    <hr/>
+
+    <!-- 주문 조회 -->
+    <h3>🔍 주문 조회</h3>
+    <form th:action="@{/ui/lookup}" method="post" th:object="${lookupForm}">
+        주문 ID: <input type="text" th:field="*{orderId}" />
+        <button type="submit">조회</button>
+    </form>
+
+    <hr/>
+
+    <!-- 주문 취소 -->
+    <h3>🚫 주문 상품 취소</h3>
+    <form th:action="@{/ui/cancel}" method="post" th:object="${cancelForm}">
+        주문 ID: <input type="text" th:field="*{orderId}" />
+        상품 ID: <input type="text" th:field="*{productId}" />
+        <button type="submit">취소</button>
+    </form>
+</div>
+<script>
+  let itemIndex = 1;
+
+  function addItem() {
+    const tbody = document.getElementById('orderItems');
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td><input type="text" name="items[${itemIndex}].productId" required></td>
+      <td><input type="number" name="items[${itemIndex}].quantity" min="1" required></td>
+      <td><button type="button" onclick="removeItem(this)">–</button></td>
+    `;
+
+    tbody.appendChild(row);
+    itemIndex++;
+  }
+
+  function removeItem(button) {
+    const tbody = document.getElementById('orderItems');
+    if (tbody.rows.length > 1) {
+      const row = button.closest('tr');
+      tbody.removeChild(row);
+    } else {
+      alert("최소 1개 항목은 남아 있어야 합니다.");
+    }
+  }
+</script>
+</body>
+</html>

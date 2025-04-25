@@ -1,0 +1,32 @@
+server:
+  port: 5537
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:jcgdb
+    driver-class-name: org.h2.Driver
+    username: jcg
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+
+logging:
+  level:
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql: TRACE
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /order-api
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
